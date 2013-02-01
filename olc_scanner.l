@@ -1,14 +1,14 @@
 %{
-    /* Constant Definiton */
-    #include <stdio.h>
-
+    #include <stdlib.h>
+    #include <string.h>
+    #include "y.tab.h"
 %}
 
-%option noyywrap
 
 /* Regular Definition */
 ws			[ \t]*
-zi			[0-9]
+zi			[0-9]+
+number		[0-9]+\.?|[0-9]*\.[0-9]+
 
 /* Definition for converion */
 hex 		"hex"
@@ -16,23 +16,23 @@ dec 		"dec"
 oct 		"oct"
 to  		"=>"
 conv_id 	{hex}|{dec}|{oct}
-conv 		{ws}{conv_id}{ws}{zi}+{ws}{to}{ws}{conv_id}{ws}
 
 /* Definition for math expressions */
-plus		'+'
-minus		'-'
-div			'/'
-mult		'*'
-open		'('
-close		')'
-mod			'%'
+id			{zi}|{number}
 
 %%
-{conv}		{ printf("Conversion\n"); }
-{zi}		{ printf("id"); }
-%%
+{ws}		/* eat white */
+{conv_id}	{ 
+	if (strcmp("hex",yytext)==0)
+		yylval.c_val = 16;
+	else if (strcmp("dec",yytext)==1)
+		yylval.c_val = 10;
+	else if (strcmp("oct",yytext)==2)
+		yylval.c_val = 8;
 
-main ()
-{
-    yylex();
+	return CONV_ID;
 }
+{id}		{ yylval.d_val = atof(yytext); 		return NUMBER; }
+{to}		{									return TO; }
+.|\n		{ 									return *yytext; } /*Restliche Zeichen */
+
